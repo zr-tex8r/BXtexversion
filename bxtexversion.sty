@@ -1,0 +1,211 @@
+%%
+%% This is file 'bxtexversion.sty'.
+%%
+%% Copyright (c) 2018 Takayuki YATO (aka. "ZR")
+%%   GitHub:   https://github.com/zr-tex8r
+%%   Twitter:  @zr_tex8r
+%%
+%% This package is distributed under the MIT License.
+%%
+%
+%% avoid multiple loading
+\csname\if11bxtvLoaded\fi\endcsname%
+%% code guards
+\begingroup\chardef\=\catcode61\catcode61\catcode48%
+\chardef\{\catcode123\catcode123=1\chardef\}\catcode125\catcode125=2%
+\xdef\bxtvResetCodes{\catcode61=\the\=\catcode123=\the\{\catcode125=\the\}}%
+\endgroup%
+\catcode61\catcode48\catcode123=1\catcode125=2%
+\edef\bxtvResetCodes{\let\noexpand\bxtvResetCodes\relax\bxtvResetCodes%
+\catcode13=\the\catcode13%
+\catcode32=\the\catcode32%
+\catcode35=\the\catcode35%
+\catcode39=\the\catcode39%
+\catcode40=\the\catcode40%
+\catcode41=\the\catcode41%
+\catcode44=\the\catcode44%
+\catcode45=\the\catcode45%
+\catcode46=\the\catcode46%
+\catcode47=\the\catcode47%
+\catcode58=\the\catcode58%
+\catcode64=\the\catcode64%
+\catcode91=\the\catcode91%
+\catcode93=\the\catcode93%
+\endlinechar=\the\endlinechar\relax}%
+\catcode32=10\catcode13=5\endlinechar=13%
+\catcode35=6  % <#>
+\catcode39=12 % <'>
+\catcode40=12 % <(>
+\catcode41=12 % <)>
+\catcode44=12 % <,>
+\catcode45=12 % <->
+\catcode46=12 % <.>
+\catcode47=12 % </>
+\catcode58=12 % <:>
+\catcode64=11 % <@>
+\catcode91=12 % <[>
+\catcode93=12 % <]>
+\def\bxtvLoaded{\endinput}
+
+%% check for LaTeX
+\ifx\RequirePackage\bxtv@undefined %<*!LaTeX>
+  \let\bxtv@latex=f
+  \long\def\x#1\ProvidesPackage#2[#3]{%
+    \immediate\write-1{Package: #2 #3}}
+  \expandafter\x
+\else                          %<*LaTeX>
+  \let\bxtv@latex=t
+\fi                            %</LaTeX>
+
+%% package declaration
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{bxtexversion}[2018/10/04 v0.2 TeX version strings]
+\def\bxtv@pkgname{bxtexversion}
+
+%--------------------------------------- helpers
+
+%% \bxtv@preamble\def\CS...
+\if t\bxtv@latex               %<*LaTeX>
+  \def\bxtv@preamble#1#2{\@onlypreamble#2#1#2}
+  \let\do\@onlypreamble
+  \do\bxtv@tmpa\do\bxtv@tmpb\do\bxtv@preamble
+\else                          %<*!LaTeX>
+  \let\bxtv@preamble\relax
+\fi                            %</LaTeX>
+
+%% \bxtv@error{<message>}
+\if t\bxtv@latex               %<*LaTeX>
+  \bxtv@preamble\def\bxtv@error#1{%
+    \PackageError\bxtv@pkgname{#1}{\@ehc}}
+\else                          %<*!LaTeX>
+  \def\bxtv@error#1{%
+    \errhelp{(No help)}\errmessage{Error (\bxtv@pkgname): #1}}
+\fi                            %</LaTeX>
+
+%% \bxtv@if@preamble\CS{<true>}
+\bxtv@preamble\def\bxtv@if@primitive#1#2{%
+  \edef\bxtv@tmpa{\string#1}\edef\bxtv@tmpb{\meaning#1}%
+  \ifx\bxtv@tmpa\bxtv@tmpb #2\fi}
+
+%% \bxtv@if@definable\CS{<true>}
+\if t\bxtv@latex               %<*LaTeX>
+  \bxtv@preamble\let\bxtv@if@definable\@ifdefinable
+\else
+  \def\bxtv@if@definable#1#2{%
+    \ifx#1\bxtv@undefined #2\else
+      \bxtv@error{\string#1 is already defined}%
+    \fi}
+\fi                            %</LaTeX>
+
+%--------------------------------------- user interface
+
+%% constants
+\def\bxtv@empty{}
+
+%% check
+\let\bxtv@tmpa\bxtv@empty
+
+%%<*> \TeXenginename
+\bxtv@if@definable\TeXenginename{%
+  \def\TeXenginename{TeX}%
+  \edef\bxtv@tmpa{.\bxtv@tmpa}%
+}
+%%<*> \TeXengineversion
+\bxtv@if@definable\TeXengineversion{%
+  \let\TeXengineversion\bxtv@empty
+  \edef\bxtv@tmpa{.\bxtv@tmpa}%
+}
+
+%%<*> \TeXenginenamefull
+\bxtv@if@definable\TeXenginenamefull{%
+  \def\TeXenginenamefull{%
+    \TeXenginename
+    \ifx\TeXengineversion\bxtb@empty\else -\TeXengineversion \fi}%
+  \edef\bxtv@tmpa{.\bxtv@tmpa}%
+}
+
+%%<+> \bxtexversionRegister{<name>}\CStarget\CSversion
+\bxtv@if@definable\bxtexversionRegister{%
+  \bxtv@preamble\def\bxtexversionRegister#1#2#3{%
+    \bxtv@if@primitive#2{%
+      \xdef\TeXenginename{#1}%
+      \xdef\TeXengineversion{#3}}}%
+  \edef\bxtv@tmpa{.\bxtv@tmpa}%
+}
+
+%% check
+\def\bxtv@tmpb{....}\ifx\bxtv@tmpa\bxtv@tmpb\else
+  \bxtvResetCodes%
+\expandafter\endinput\fi\relax%
+
+%--------------------------------------- get engine info
+\begingroup
+
+%% temporary variables
+\countdef\count@=255
+\toksdef\toks@=0
+
+%% \bxtv@register{<name>}\CStargetA\CStargetB{<proc>}
+\def\bxtv@register#1#2#3#4{%
+  \bxtv@if@primitive#2{\bxtv@if@primitive#3{%
+    \def\TeXenginename{#1}%
+    \toks@{#4}}}}
+
+%% LuaTeX something
+\bxtv@if@primitive\directlua{%
+  \directlua{tex.enableprimitives('bxtv@',
+    {'luatexversion', 'luatexrevision'})}%
+  \let\luatexversion\bxtv@luatexversion
+  \let\luatexrevision\bxtv@luatexrevision}
+
+%% known engines
+\bxtv@register{e-TeX}\eTeXversion\numexpr{%
+  \edef\TeXengineversion{\the\eTeXversion\eTeXrevision}}
+\bxtv@register{Omega}\OmegaVersion\/{%
+  \edef\TeXengineversion{\OmegaVersion}}
+\bxtv@register{Aleph}\AlephVersion\numexpr{%
+  \edef\TeXengineversion{\AlephVersion}}
+\bxtv@register{pdfTeX}\pdftexversion\/{%
+  \count@\pdftexversion \advance\count@100000
+  \def\bxtv@tmpa#1#2#3#4#5#6.{\edef\bxtv@tmpa{\number#2#3#4.#5#6}}%
+  \expandafter\bxtv@tmpa\number\count@.%
+  \edef\TeXengineversion{\bxtv@tmpa.\pdftexrevision}}
+\bxtv@register{LuaTeX}\luatexversion\/{%
+  \count@\luatexversion \advance\count@100000
+  \def\bxtv@tmpa#1#2#3#4#5#6.{\edef\bxtv@tmpa{\number#2#3#4.#5#6}}%
+  \expandafter\bxtv@tmpa\number\count@.%
+  \edef\TeXengineversion{\bxtv@tmpa.\luatexrevision}}
+\bxtv@register{XeTeX}\XeTeXversion\/{%
+  \edef\TeXengineversion{\the\XeTeXversion\XeTeXrevision}}
+\bxtv@register{pTeX}\kanjiskip\/{%
+  \bxtv@if@primitive\ptexversion{%
+    \edef\TeXengineversion{%
+      \the\ptexversion.\the\ptexminorversion\ptexrevision}}}
+\bxtv@register{e-pTeX}\kanjiskip\numexpr{%
+  \bxtv@if@primitive\epTeXversion{%
+    \edef\TeXengineversion{%
+      \the\ptexversion.\the\ptexminorversion\ptexrevision
+      -\the\epTeXversion}}}
+\bxtv@register{upTeX}\kchardef\/{%
+  \bxtv@if@primitive\ptexversion{%
+    \edef\TeXengineversion{%
+      \the\uptexversion\uptexrevision}}}
+\bxtv@register{e-upTeX}\kchardef\numexpr{%
+  \bxtv@if@primitive\epTeXversion{%
+    \edef\TeXengineversion{%
+      \the\uptexversion\uptexrevision-\the\epTeXversion}}}
+\bxtv@register{Asiatic pTeX}\ngbanner\/{%
+  \let\TeXengineversion\bxtv@empty}% no meaningful version
+\bxtv@register{JTeX}\jintercharskip\/{}
+
+%% dispatch
+\the\toks@
+%% take them out
+\global\let\TeXenginename\TeXenginename
+\global\let\TeXengineversion\TeXengineversion
+
+\endgroup
+%--------------------------------------- all done
+\bxtvResetCodes%
+\endinput%
+%% EOF
